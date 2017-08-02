@@ -23,14 +23,14 @@ const double Lf = 2.67;
 
 //allocate size for big , long vector for Ipopt
 
-sizeof x_start = 0;
-sizeof y_start = x_start + N;
-sizeof psi_start = y_start + N;
-sizeof v_start = psi_start +N;
-sizeof cte_start = v_start + N;
-sizeof epsi_start = cte_start + N;
-sizeof delta_start = epsi_start + N;
-sizeof a_start = delta_start + N -1;
+size_t x_start = 0;
+size_t y_start = x_start + N;
+size_t psi_start = y_start + N;
+size_t v_start = psi_start +N;
+size_t cte_start = v_start + N;
+size_t epsi_start = cte_start + N;
+size_t delta_start = epsi_start + N;
+size_t a_start = delta_start + N -1;
 
 class FG_eval {
  public:
@@ -44,6 +44,35 @@ class FG_eval {
     // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
     // NOTE: You'll probably go back and forth between this function and
     // the Solver function below.
+
+    fg[0] = 0;
+
+    //adding cross track, heading and velocity errors to trhe cost function
+    for(int i = 0; i < N; i++){
+      fg[0] += CppAD::pow(vars[cte_start+i],2);
+      fg[0] += CppAD::pow(vars[epsi_start+i],2);
+      fg[0] += CppAD::pow(vars[v_start+i],2);
+    }
+
+    //penalize if the turns are not smooth
+    for(int i = 0; i < N-1; i++){
+      fg[0] += CppAD::pow(vars[delta_start+i],2);
+      fg[0] += CppAD::pow(vars[a_start+i],2);
+    }
+
+    //we penalize high rate of change between sequential actuations
+    for(int i = 0; i< N-2 ; i++){
+      fg[0]+=CppAD::pow(vars[delta_start+i+1] - vars[delta_start+i],2);
+      fg[0]+=CppAD::pow(vars[a_start+i+1] - vars[a_start+i],2);
+
+    }
+
+    fg[1+x_start] = vars[x_start];
+    fg[1+y_start]= vars[y_start];
+    fg[1+psi_start] = vars[psi_start];
+    fg[1+v_start] = vars[v_start];
+    fg[1+cte_start] = vars[cte_start];
+    fg[1+epsi_start] = vars[epsi_start];
 
   }
 };
