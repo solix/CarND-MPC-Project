@@ -5,9 +5,9 @@
 
 using CppAD::AD;
 
-// TODO: Set the timestep length and duration
-size_t N = 0;
-double dt = 0;
+// Set the timestep length and duration
+size_t N = 20;
+double dt = 0.01;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -21,6 +21,17 @@ double dt = 0;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
+//allocate size for big , long vector for Ipopt
+
+sizeof x_start = 0;
+sizeof y_start = x_start + N;
+sizeof psi_start = y_start + N;
+sizeof v_start = psi_start +N;
+sizeof cte_start = v_start + N;
+sizeof epsi_start = cte_start + N;
+sizeof delta_start = epsi_start + N;
+sizeof a_start = delta_start + N -1;
+
 class FG_eval {
  public:
   // Fitted polynomial coefficients
@@ -33,6 +44,7 @@ class FG_eval {
     // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
     // NOTE: You'll probably go back and forth between this function and
     // the Solver function below.
+
   }
 };
 
