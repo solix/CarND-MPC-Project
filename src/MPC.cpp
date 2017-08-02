@@ -34,7 +34,7 @@ size_t a_start = delta_start + N -1;
 
 class FG_eval {
  public:
-  // Fitted polynomial coefficients
+  // Fitted polynomial coefficientsf
   Eigen::VectorXd coeffs;
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
 
@@ -67,6 +67,7 @@ class FG_eval {
 
     }
 
+    //add the rest of vars to the end of fg where iprop expects after fg[0] thus +1 the index to get the right elem
     fg[1+x_start] = vars[x_start];
     fg[1+y_start]= vars[y_start];
     fg[1+psi_start] = vars[psi_start];
@@ -93,7 +94,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // element vector and there are 10 timesteps. The number of variables is:
   //
   // 4 * 10 + 2 * 9
-  size_t n_vars = 0;
+  size_t n_vars = 4 * 10 + 2 * 9;
   // TODO: Set the number of constraints
   size_t n_constraints = 0;
 
