@@ -7,7 +7,7 @@ using CppAD::AD;
 
 // Set the timestep length and duration
 size_t N = 10;
-double dt = 0.1;
+double dt = .1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -24,7 +24,7 @@ const double Lf = 2.67;
 //allocate size for big , long vector for Ipopt
 double ref_cte = 0;
 double ref_epsi =0;
-double ref_speed = 50;
+double ref_speed = 100;
 
 
 size_t x_start = 0;
@@ -53,9 +53,9 @@ class FG_eval {
 
     //adding cross track, heading and velocity errors to trhe cost function
     for(int i = 0; i < N; i++){
-      fg[0] += 2000*CppAD::pow(vars[cte_start+i],2);
-      fg[0] += 2000*CppAD::pow(vars[epsi_start+i],2);
-      fg[0] += CppAD::pow(vars[v_start+i],2);
+      fg[0] += 2000*CppAD::pow(vars[cte_start+i] -ref_cte,2);
+      fg[0] += 2000*CppAD::pow(vars[epsi_start+i] - ref_epsi,2);
+      fg[0] += CppAD::pow(vars[v_start+i] -ref_speed,2);
     }
 
     //penalize if the turns are not smooth
@@ -80,7 +80,7 @@ class FG_eval {
     fg[1+epsi_start] = vars[epsi_start];
 
     //taken from the quizz
-    for (int t = 1; t < N-1; t++) {
+    for (int t = 0; t < N-1; t++) {
       // The state at time t+1 .
       AD<double> x1 = vars[x_start + t +1];
       AD<double> y1 = vars[y_start + t + 1];
@@ -101,9 +101,9 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t ];
       AD<double> a0 = vars[a_start + t ];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0 * x0 + coeffs[3] * x0 * x0 * x0;
+      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * CppAD::pow(x0 ,2) + coeffs[3] * CppAD::pow(x0 ,3);
 
-      AD<double> psides0 = CppAD::atan(3*coeffs[3]* x0* x0 + 2*coeffs[2] * x0 + coeffs[1]);
+      AD<double> psides0 = CppAD::atan(3*coeffs[3]* CppAD::pow(x0 ,2) + 2*coeffs[2] * x0 + coeffs[1]);
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -117,7 +117,7 @@ class FG_eval {
       // epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
       fg[2 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
       fg[2 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-      fg[2 + psi_start + t] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
+      fg[2 + psi_start + t] = psi1 - (psi0 - v0 * delta0 / Lf * dt);
       fg[2 + v_start + t] = v1 - (v0 + a0 * dt);
       fg[2 + cte_start + t] =
           cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
@@ -168,7 +168,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
   // TODO: Set lower and upper limits for variables.
-
+// TODO: Set lower and upper limits for variables.
+  // Set the initial variable values
+  vars[x_start] = x;
+  vars[y_start] = y;
+  vars[psi_start] = psi;
+  vars[v_start] = v;
+  vars[cte_start] = cte;
+  vars[epsi_start] = epsi;
 
   //
   for(int i = 0; i < delta_start; i++){
