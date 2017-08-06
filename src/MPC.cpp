@@ -38,7 +38,7 @@ size_t a_start = delta_start + N -1;
 
 class FG_eval {
  public:
-  // Fitted polynomial coefficientsf
+  // Fitted polynomial coefficient
   Eigen::VectorXd coeffs;
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
 
@@ -51,7 +51,7 @@ class FG_eval {
 
     fg[0] = 0;
 
-    //adding cross track, heading and velocity errors to trhe cost function
+    //adding cross track, heading and velocity errors to the cost function
     for(int i = 0; i < N; i++){
       fg[0] += 4000*CppAD::pow(vars[cte_start+i] -ref_cte,2);
       fg[0] += 5000*CppAD::pow(vars[epsi_start+i] - ref_epsi,2);
@@ -115,6 +115,7 @@ class FG_eval {
       // v_[t] = v[t-1] + a[t-1] * dt
       // cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
       // epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
+
       fg[2 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
       fg[2 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
       fg[2 + psi_start + t] = psi1 - (psi0 - v0 * delta0 / Lf * dt);
@@ -140,12 +141,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
-  // TODO: Set the number of model variables (includes both states and inputs).
-  // For example: If the state is a 4 element vector, the actuators is a 2
-  // element vector and there are 10 timesteps. The number of variables is:
-  //
-  // 4 * 10 + 2 * 9
 
+  //pull down all the initial state variables
   double x = state[0];
   double y = state[1];
   double psi = state[2];
@@ -166,8 +163,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
-  // TODO: Set lower and upper limits for variables.
-// TODO: Set lower and upper limits for variables.
+  // Set lower and upper limits for variables.
+// Set lower and upper limits for variables.
   // Set the initial variable values
   vars[x_start] = x;
   vars[y_start] = y;
@@ -176,15 +173,15 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vars[cte_start] = cte;
   vars[epsi_start] = epsi;
 
-  //
+  //Ipopt need constraints to start with something
   for(int i = 0; i < delta_start; i++){
     vars_lowerbound[i] = -1.0e19;
     vars_upperbound[i] = 1.0e19;
   }
 
   for(int i = delta_start; i < a_start; i++){
-    vars_lowerbound[i] = -25 * M_PI / 180;
-    vars_upperbound[i] = 25 * M_PI / 180;
+    vars_lowerbound[i] = -30 * M_PI / 180;
+    vars_upperbound[i] = 30 * M_PI / 180;
   }
 
   for(int i = a_start; i < n_vars; i++){
@@ -200,6 +197,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
+
 
   constraints_lowerbound[x_start] = x;
   constraints_lowerbound[y_start] = y;
@@ -253,18 +251,19 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   std::cout << "Cost " << cost << std::endl;
 
+  //we push the solvers solution for steering angle and acceleration
   res.push_back(solution.x[delta_start]);
   res.push_back(solution.x[a_start]);
+
+  //finally loop over new predictions variables 
   for(int i = 0 ; i < N-1; i++){
       res.push_back(solution.x[x_start+i+1]);
       res.push_back(solution.x[y_start+i+1]);
   }
 
 
-  // TODO: Return the first actuator values. The variables can be accessed with
+  //  Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.
-  //
-  // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
-  // creates a 2 element double vector.
+  
   return res;
 }
