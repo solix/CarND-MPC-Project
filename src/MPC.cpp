@@ -24,7 +24,7 @@ const double Lf = 2.67;
 //allocate size for big , long vector for Ipopt
 double ref_cte = 0;
 double ref_epsi =0;
-double ref_speed = 100;
+double ref_speed = 60;
 
 
 size_t x_start = 0;
@@ -55,7 +55,7 @@ class FG_eval {
     for(int i = 0; i < N; i++){
       fg[0] += 2000*CppAD::pow(vars[cte_start+i] -ref_cte,2);
       fg[0] += 2000*CppAD::pow(vars[epsi_start+i] - ref_epsi,2);
-      fg[0] += CppAD::pow(vars[v_start+i] -ref_speed,2);
+      fg[0] += 100*CppAD::pow(vars[v_start+i] -ref_speed,2);
     }
 
     //penalize if the turns are not smooth
@@ -66,8 +66,8 @@ class FG_eval {
 
     //we penalize high rate of change between sequential actuations
     for(int i = 0; i< N-2 ; i++){
-      fg[0]+=200*CppAD::pow(vars[delta_start+i+1] - vars[delta_start+i],2);
-      fg[0]+=10*CppAD::pow(vars[a_start+i+1] - vars[a_start+i],2);
+      fg[0]+=100000*CppAD::pow(vars[delta_start+i+1] - vars[delta_start+i],2);
+      fg[0]+=10000*CppAD::pow(vars[a_start+i+1] - vars[a_start+i],2);
 
     }
 
@@ -87,7 +87,7 @@ class FG_eval {
       AD<double> psi1 = vars[psi_start + t + 1];
       AD<double> v1 = vars[v_start + t + 1];
       AD<double> cte1 = vars[cte_start + t + 1];
-      AD<double> epsi1 = vars[epsi_start + t];
+      AD<double> epsi1 = vars[epsi_start + t + 1];
 
       // The state at time t.
       AD<double> x0 = vars[x_start + t ];
@@ -162,7 +162,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // SHOULD BE 0 besides initial state.
   Dvector vars(n_vars);
   for (int i = 0; i < n_vars; i++) {
-    vars[i] = 0;
+    vars[i] = 0.0;
   }
 
   Dvector vars_lowerbound(n_vars);
@@ -184,8 +184,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   }
 
   for(int i = delta_start; i < a_start; i++){
-    vars_lowerbound[i] = -0.436332*Lf;
-    vars_upperbound[i] = 0.436332*Lf;
+    vars_lowerbound[i] = -25 * M_PI / 180;
+    vars_upperbound[i] = 25 * M_PI / 180;
   }
 
   for(int i = a_start; i < n_vars; i++){
