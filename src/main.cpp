@@ -145,7 +145,7 @@ int main() {
           Eigen::VectorXd state(6);
 
           //this is our state vector
-          state << px_f,py_f, psi_f,v_f, cte,  epsi_f;
+          state << px_f,py_f, psi_f,v_f, cte_f,  epsi_f;
 
 
           //feed in to solver
@@ -181,7 +181,7 @@ int main() {
 
 
 
-          msgJson["steering_angle"] = vars[0] / (deg2rad(25) * Lf);
+          msgJson["steering_angle"] = vars[0] / (deg2rad(30) * Lf);
           msgJson["throttle"] = vars[1];
 
 

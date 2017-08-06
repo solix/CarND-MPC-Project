@@ -24,7 +24,7 @@ const double Lf = 2.67;
 //allocate size for big , long vector for Ipopt
 double ref_cte = 0;
 double ref_epsi =0;
-double ref_speed = 60;
+double ref_speed = 100;
 
 
 size_t x_start = 0;
@@ -53,9 +53,9 @@ class FG_eval {
 
     //adding cross track, heading and velocity errors to trhe cost function
     for(int i = 0; i < N; i++){
-      fg[0] += 2000*CppAD::pow(vars[cte_start+i] -ref_cte,2);
-      fg[0] += 2000*CppAD::pow(vars[epsi_start+i] - ref_epsi,2);
-      fg[0] += 100*CppAD::pow(vars[v_start+i] -ref_speed,2);
+      fg[0] += 4000*CppAD::pow(vars[cte_start+i] -ref_cte,2);
+      fg[0] += 5000*CppAD::pow(vars[epsi_start+i] - ref_epsi,2);
+      fg[0] += CppAD::pow(vars[v_start+i] -ref_speed,2);
     }
 
     //penalize if the turns are not smooth
@@ -66,8 +66,8 @@ class FG_eval {
 
     //we penalize high rate of change between sequential actuations
     for(int i = 0; i< N-2 ; i++){
-      fg[0]+=100000*CppAD::pow(vars[delta_start+i+1] - vars[delta_start+i],2);
-      fg[0]+=10000*CppAD::pow(vars[a_start+i+1] - vars[a_start+i],2);
+      fg[0]+=200*CppAD::pow(vars[delta_start+i+1] - vars[delta_start+i],2);
+      fg[0]+=200*CppAD::pow(vars[a_start+i+1] - vars[a_start+i],2);
 
     }
 
@@ -138,7 +138,6 @@ MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
-  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
   // TODO: Set the number of model variables (includes both states and inputs).
