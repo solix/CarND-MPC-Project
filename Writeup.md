@@ -3,7 +3,7 @@ MPC-PROJECT
 
 
 ### Model 
-For MPC project we are using kinematic model, that will uses an optimizer to find the control inputs for steering angle and acceleration of the car that drives in the simulation.
+For MPC project we are using an optimizer to find the control inputs for steering angle and acceleration of the car that drives in the simulation.
 We only execute first set of control inputs this brings the vehicle to the new state and then it repeats a process by optimizing the cost function.
 #### State:
 
@@ -62,7 +62,7 @@ There is `100ms` delay for the actuations control to take effect. The solution t
           double v_f = v + throttle_value * latency;
           double cte_f = cte + v * sin(epsi) * latency;
           double epsi_f = epsi + v * -steer_value / Lf * latency;
-		  ```
+
 
 
 Like this we actuate at the right time taking delay in to account.
